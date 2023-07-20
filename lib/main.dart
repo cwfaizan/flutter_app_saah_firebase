@@ -1,81 +1,82 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:saah/screens/auth_screen.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:provider/provider.dart';
+import 'package:saah/providers/recycling_idea_provider.dart';
+import 'package:saah/providers/user_provider.dart';
+import 'package:saah/screens/adm/adm_home_screen.dart';
+import 'package:saah/screens/auth/auth_screen.dart';
+import 'package:saah/screens/edit_product_screen.dart';
+import 'package:saah/screens/auth/forget_password_screen.dart';
+import 'package:saah/screens/notification_screen.dart';
+import 'package:saah/screens/profile_screen.dart';
 import 'package:saah/screens/tab_screen.dart';
-import 'package:saah/util/routes.dart';
+import 'package:saah/utils/routes.dart';
+import 'providers/product_provider.dart';
+import 'screens/recycling_idea_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
+// ignore: must_be_immutable
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
+  MyApp({Key? key}) : super(key: key);
+  Map<int, Color> color = {
+    50: const Color.fromRGBO(3, 192, 60, .1),
+    100: const Color.fromRGBO(3, 192, 60, .2),
+    200: const Color.fromRGBO(3, 192, 60, .3),
+    300: const Color.fromRGBO(3, 192, 60, .4),
+    400: const Color.fromRGBO(3, 192, 60, .5),
+    500: const Color.fromRGBO(3, 192, 60, .6),
+    600: const Color.fromRGBO(3, 192, 60, .7),
+    700: const Color.fromRGBO(3, 192, 60, .8),
+    800: const Color.fromRGBO(3, 192, 60, .9),
+    900: const Color.fromRGBO(3, 192, 60, 1),
+  };
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
-      initialRoute: Routes.authScreen,
-      routes: {
-        Routes.authScreen: (context) => const AuthScreen(),
-        Routes.tabScreen: (context) => const TabScreen(),
-      },
-      onUnknownRoute: (settings) {
-        return MaterialPageRoute(
-          builder: (context) => const TabScreen(),
-        );
-      },
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => ProductProvider(),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => RecyclingIdeaProvider(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: MaterialColor(0xFF95c5ab, color),
+          inputDecorationTheme:
+              const InputDecorationTheme(border: OutlineInputBorder()),
+        ),
+        initialRoute: Routes.authScreen,
+        // initialRoute: Routes.authScreen,
+        routes: {
+          Routes.authScreen: (context) => const AuthScreen(),
+          Routes.tabScreen: (context) => const TabScreen(),
+          Routes.admHomeScreen: (context) => const AdmHomeScreen(),
+          Routes.profileScreen: (context) => const ProfileScreen(),
+          Routes.editProductScreen: (context) => EditProductScreen(),
+          Routes.forgetPasswordScreen: (context) =>
+              const ForgetPasswordScreen(),
+          Routes.notificationScreen: (context) => const NotificationScreen(),
+          Routes.recyclingIdeaScreen: (context) => const RecyclingIdeaScreen(),
+        },
+        onUnknownRoute: (settings) {
+          return MaterialPageRoute(
+            builder: (context) => const AuthScreen(),
+          );
+        },
       ),
     );
   }

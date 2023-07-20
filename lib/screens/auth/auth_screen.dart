@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:saah/models/user_model.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:saah/screens/adm/adm_tab_screen.dart';
 import 'package:saah/screens/tab_screen.dart';
-import 'package:saah/util/routes.dart';
-import 'package:saah/widgets/auth_form.dart';
+import 'package:saah/widgets/auth/auth_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../util/collection.dart';
+import '../../utils/collection.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -19,35 +18,45 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _auth = FirebaseAuth.instance;
 
-  void _submitAuthForm(String email, String phone, String name, String dob,
-      String gender, String password, bool isLogin) async {
-    UserCredential? credential;
+  void _submitAuthForm(
+    TextEditingController emailController,
+    TextEditingController phoneController,
+    TextEditingController nameController,
+    TextEditingController dobController,
+    TextEditingController passwordController,
+    String gender,
+    bool isLogin,
+  ) async {
     SharedPreferences sp = await SharedPreferences.getInstance();
 
     if (isLogin) {
       try {
-        credential = await _auth
+        await _auth
             .signInWithEmailAndPassword(
-          email: email,
-          password: password,
+          email: emailController.text,
+          password: passwordController.text,
         )
             .whenComplete(() {
           // if (credential?.user != null) {
+          passwordController.clear();
           if (FirebaseAuth.instance.currentUser != null) {
-            FirebaseFirestore.instance
-                .collection('users')
-                .where('email', isEqualTo: email)
+            Collection.users
+                .where('email', isEqualTo: emailController.text)
                 .get()
                 .then((value) {
               if (value.docs.isNotEmpty) {
-                UserModel userModel =
-                    UserModel.fromJson(value.docs.first.data());
+                // UserModel userModel =
+                // UserModel.fromJson(value.docs.first.data());
                 sp.setString('auth_user_name', value.docs[0]['name']);
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => TabScreen(
-                    userModel: userModel,
+                sp.setString('auth_user_email', value.docs[0]['email']);
+                sp.setBool('auth_user_is_admin', value.docs[0]['is_admin']);
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => value.docs[0]['is_admin']
+                        ? const AdmTabScreen()
+                        : const TabScreen(),
                   ),
-                ));
+                );
               }
             });
           }
@@ -65,28 +74,39 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } else {
       try {
-        credential = await _auth
+        await _auth
             .createUserWithEmailAndPassword(
-          email: email,
-          password: password,
+          email: emailController.text,
+          password: passwordController.text,
         )
             .then((value) {
           String id = Timestamp.now().millisecondsSinceEpoch.toString();
 
-          Collection.signUp.doc().set({
+          Collection.users.doc(FirebaseAuth.instance.currentUser!.uid).set({
             'id': id,
-            'name': name.trim(),
-            'email': email.trim(),
-            'phone': phone,
-            'dob': dob,
+            'name': nameController.text.trim(),
+            'email': emailController.text.trim(),
+            'phone': phoneController.text,
+            'dob': dobController.text,
             'gender': gender,
             'is_admin': false,
             // 'date_time': DateTime.now().toUtc().toString(),
           }).whenComplete(() {
-            sp.setString('auth_user_name', name);
+            sp.setString('auth_user_name', nameController.text);
           });
           return null;
         });
+        if (FirebaseAuth.instance.currentUser != null) {
+          emailController.clear();
+          phoneController.clear();
+          nameController.clear();
+          dobController.clear();
+          passwordController.clear();
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content:
+                Text('Successfully Registered, please login to continue...'),
+          ));
+        }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -104,9 +124,20 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    initialization();
+  }
+
+  void initialization() async {
+    // This is where you can initialize the resources needed by your app while
+    await Future.delayed(const Duration(seconds: 1));
+    FlutterNativeSplash.remove();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
       body: AuthForm(_submitAuthForm),
     );
   }
