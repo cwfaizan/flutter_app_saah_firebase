@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "286365471537",
+    "project_id": "saah-fde9e",
+    "storage_bucket": "saah-fde9e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286365471537:android:2f935cddb68814643f1610",
+        "android_client_info": {
+          "package_name": "com.example.saah"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "286365471537-h2hgasqs0rgte0b8lr70c1cvtk6q2lk5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC45xU2oPIA1QIXo5XXjaKvaNyVdaG187w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "286365471537-h2hgasqs0rgte0b8lr70c1cvtk6q2lk5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
